@@ -1,0 +1,48 @@
+version: "3.7"
+services:
+  app:
+    build:
+      args:
+        user: wrrra
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    container_name: laraapp-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./laraapp:/var/www
+    networks:
+      - laraapp
+
+  db:
+    image: mysql:5.7
+    container_name: laraapp-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: laraapp
+      MYSQL_USER: devuser
+      MYSQL_PASSWORD: devsecret
+      MYSQL_ROOT_PASSWORD: devsecret
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./docker-compose/mysql:/var/lib/mysql
+    networks:
+      - laraapp
+
+  nginx:
+    image: nginx:alpine
+    container_name: laraapp-nginx
+    restart: unless-stopped
+    ports:
+      - 8000:80
+    volumes:
+      - ./laraapp:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d/
+    networks:
+      - laraapp
+
+networks:
+  laraapp:
+    driver: bridge
